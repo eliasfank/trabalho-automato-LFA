@@ -96,6 +96,47 @@ def calculaTokens(tokens):
 		estadosFinais.append(contEstado)
 		matriz.append({})
 
+def imprime():
+	global matriz
+	a = ""#usado na impressao de valores 
+	print
+	print "Automato:"
+	print
+	print ('regra inicial = 0:')
+	print
+	print (' '*11+'|'),
+	for simbolo in simbolos:#mostrou as ligacoes
+		print '%10s' % (simbolo),"|",
+		
+	print
+	print ('_ _'*38)
+	#verifique se o estado e final e imprima o *
+	for i in range(0,len(matriz)):
+		if i in estadosFinais:
+			print "*",
+		else:
+			print " ",
+		print '%8s' % (i),"|",
+		#imprime os simbilos que sao nomes das regras
+			
+		for simbolo in simbolos:
+			try:
+				print '%10s' % (matriz[i][simbolo]),
+			except:
+				print '%8s' % (a),"x",
+				
+			print ('|'),
+		print
+		print
+		
+	print
+	print "Estados Finais:"
+	print estadosFinais
+	print len(matriz), "estados no automato"
+	print
+
+################################################################################################
+
 if arqGramatica is not None:					
 	f = open(arqGramatica)
 	lines = f.readlines()
@@ -126,3 +167,5 @@ print "Estados Finais:"
 print estadosFinais
 print len(matriz), "estados no automato"
 print simbolos
+
+imprime()
