@@ -1,12 +1,10 @@
 # trabalho-automato-LFA
 Trabalho de LFA: a partir de gramáticas e tokens, gerar o autômato determinístico e mínimo.
 
-###
-Como Usar:
+### Como Usar:
 python gerar-automato.py -g gramaticas.txt -t tokens.txt
 
-###
-Informações:
+### Informações:
 - o arquivo gramaticas.txt contém todas as gramáticas
 - o arquivo tokens.txt contém todos os tokens
 - cada gramática no arquivo deve ser separada por um linha em branco
