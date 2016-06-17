@@ -10,11 +10,14 @@ arqGramatica = args["gramatica"]
 arqTokens = args["tokens"]
 
 contEstado = 0
-matriz = []
-simbolos = []
-estadosFinais = []
+matriz = []					   ###Lista de dicionarios
+simbolos = []				   ###Lista com todos os simbolos do automato
+vivos = set()                  ###Lista com o estados vivos
+alcansaveis = set()			   ###Lista com estados alcansaveis
+estadosFinais = []			   ###Lista com os estados finais
 
-def calculaGramatica(gramatica):
+def calculaGramatica(gramatica, contGramatica):
+	print contGramatica
 	global contEstado
 	global matriz
 	global estadosFinais
@@ -24,10 +27,16 @@ def calculaGramatica(gramatica):
 	##Percorrer todas as linhas de uma gramatica
 	###salvando os estados da esquerda
 	for line in gramatica:
+		#Se for a primeira gramatica comecamos pelo indice 0
+		if contGramatica > 0:
+			contEstado+=1
 		partes = line.split("=")
 		estadoEsq = partes[0][partes[0].find("<")+1:partes[0].find(">")]
 		tempDic[estadoEsq] = contEstado
-		contEstado+=1
+		print estadoEsq, contEstado
+		#Se nao for a primeira gramatica precisamos incrementar
+		if contGramatica == 0:
+			contEstado+=1
 	contEstado-=1
 
 	##Percorre todas as linhas de uma gramatica
@@ -135,19 +144,43 @@ def imprime():
 	print len(matriz), "estados no automato"
 	print
 
+def gerarGrafo(grafo):
+	global matriz
+	grafo = {}
+	for i in range(0,len(matriz)):
+		grafo[i]=set()
+		for simbolo in simbolos:
+			try:
+				grafo[i].add(matriz[i][simbolo][0])
+			except:
+				pass
+		print
+	return grafo
+
+
+def dfs(graph, start, visited=None):
+    if visited is None:
+        visited = set()
+    visited.add(start)
+    for next in graph[start] - visited:
+        dfs(graph, next, visited)
+    return visited
+
 ################################################################################################
 
+contGramatica = 0
 if arqGramatica is not None:					
 	f = open(arqGramatica)
 	lines = f.readlines()
 	gramatica = []
 	for line in lines:
 		if line == "\n":
-			calculaGramatica(gramatica)
+			calculaGramatica(gramatica, contGramatica)
 			gramatica=[]
+			contGramatica+=1
 		else:
 			gramatica.append(line)
-	calculaGramatica(gramatica)
+	calculaGramatica(gramatica, contGramatica)
 if arqTokens is not None:
 	f = open(arqTokens)
 	tokens = f.readlines()
@@ -169,3 +202,17 @@ print len(matriz), "estados no automato"
 print simbolos
 
 imprime()
+
+grafo = gerarGrafo(None)
+
+alcansaveis = dfs(grafo, 0, None)
+print "Estados Alcansaveis"
+print alcansaveis
+print
+for i in range(0,len(matriz)):
+	vis=dfs(grafo, i, None)
+	if not vis.isdisjoint(estadosFinais):
+		vivos.update(vis)
+print "Estados Vivos"
+print vivos
+print
