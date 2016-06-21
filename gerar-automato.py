@@ -24,21 +24,29 @@ def calculaGramatica(gramatica, contGramatica):
 	global simbolos
 	tempDic={}
 
+	first = 0
 	##Percorrer todas as linhas de uma gramatica
 	###salvando os estados da esquerda
 	for line in gramatica:
+		partes = line.split("=")
+		estadoEsq = partes[0][partes[0].find("<")+1:partes[0].find(">")]
 		#Se for a primeira gramatica comecamos pelo indice 0
 		if contGramatica > 0:
 			contEstado+=1
-		partes = line.split("=")
-		estadoEsq = partes[0][partes[0].find("<")+1:partes[0].find(">")]
 		tempDic[estadoEsq] = contEstado
-		print estadoEsq, contEstado
+		if contGramatica > 0 and first == 0:
+			first = 1
+			tempDic[estadoEsq] = 0
+			contEstado-=1
+		else:
+			matriz.append({})
+		print estadoEsq, "--", tempDic[estadoEsq]
 		#Se nao for a primeira gramatica precisamos incrementar
 		if contGramatica == 0:
 			contEstado+=1
 	contEstado-=1
 
+	first = 0
 	##Percorre todas as linhas de uma gramatica
 	###fazendo a ligacao de cada simbolo com o respectivo estado
 	for line in gramatica:
@@ -46,19 +54,20 @@ def calculaGramatica(gramatica, contGramatica):
 		estadoEsq = partes[0][partes[0].find("<")+1:partes[0].find(">")]
 		producoes = partes[1].split("|")
 		estadosAdicionais = 0
-		matriz.append({})
 		terminal = ""
+		
 		for producao in producoes:
-			if "<" in producao:
+			if "<" in producao:  ##Se tiver estado e terminal
 				terminal = producao[producao.find(" ")+1:producao.find("<")]
 				estado = producao[producao.find("<")+1:producao.find(">")]
-				matriz[tempDic[estadoEsq]][terminal]=[]
+				if verificaSeExiste(terminal) == False or first != 0:
+					matriz[tempDic[estadoEsq]][terminal]=[]
 				matriz[tempDic[estadoEsq]][terminal].append(tempDic[estado])
-			else:
+			else:                ##Se nao tiver estado
 				terminal = producao.strip()
-				if(terminal.strip()=="&"):
+				if(terminal.strip()=="&"): ##Se o simbolo for epsilon
 					estadosFinais.append(tempDic[estadoEsq])
-				else:
+				else:            ##Se for um simbolo diferente de epsilon
 					matriz.append({})
 					matriz[tempDic[estadoEsq]][terminal]=[]
 					matriz[tempDic[estadoEsq]][terminal].append(contEstado)
@@ -67,6 +76,8 @@ def calculaGramatica(gramatica, contGramatica):
 			if (terminal!="&"):
 				if terminal not in simbolos:
 					simbolos.append(terminal)
+		if first == 0:
+			first = 1
 
 def verificaSeExiste(carac):
 	if not matriz:
@@ -137,24 +148,23 @@ def imprime():
 			print ('|'),
 		print
 		print
-		
-	print
-	print "Estados Finais:"
-	print estadosFinais
-	print len(matriz), "estados no automato"
-	print
+
 
 def gerarGrafo(grafo):
 	global matriz
 	grafo = {}
 	for i in range(0,len(matriz)):
+		#print i,":",
 		grafo[i]=set()
 		for simbolo in simbolos:
 			try:
-				grafo[i].add(matriz[i][simbolo][0])
+				x = matriz[i][simbolo]
+				for j in x:
+					#print j,
+					grafo[i].add(j)
 			except:
 				pass
-		print
+		#print
 	return grafo
 
 
@@ -186,27 +196,27 @@ if arqTokens is not None:
 	tokens = f.readlines()
 	calculaTokens(tokens)
 
-print "Automato"
-for i in range(0,len(matriz)):
-	for c, v in matriz[i].iteritems():
-		print i, c,
-		for x in range(0,len(v)):
-			if x < len(v)-1:
-				print v[x],",",
-			else:
-				print v[x],
-		print
-print "Estados Finais:"
-print estadosFinais
-print len(matriz), "estados no automato"
-print simbolos
+#print "Automato"
+#for i in range(0,len(matriz)):
+#	for c, v in matriz[i].iteritems():
+#		print i, c,
+#		for x in range(0,len(v)):
+#			if x < len(v)-1:
+#				print v[x],",",
+#			else:
+#				print v[x],
+#		print
+#print "Estados Finais:"
+#print estadosFinais
+#print len(matriz), "estados no automato"
+#print simbolos
 
 imprime()
 
 grafo = gerarGrafo(None)
 
 alcansaveis = dfs(grafo, 0, None)
-print "Estados Alcansaveis"
+print "Estados Alcancaveis"
 print alcansaveis
 print
 for i in range(0,len(matriz)):
@@ -215,4 +225,7 @@ for i in range(0,len(matriz)):
 		vivos.update(vis)
 print "Estados Vivos"
 print vivos
+print
+print "Estados Finais:"
+print estadosFinais
 print
