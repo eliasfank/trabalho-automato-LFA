@@ -116,6 +116,43 @@ def calculaTokens(tokens):
 		estadosFinais.append(contEstado)
 		matriz.append({})
 
+def detMat():
+	global contEstado
+	global matriz
+	global estadosFinais
+	global simbolos
+	cont=0
+	existeInd=1
+	novoEstado = 0
+	while(existeInd):
+		for c, v in matriz[cont].iteritems():
+			if len(v) > 1:
+				contEstado+=1
+				matriz.append({})
+				for i in range(0,len(v)):
+					pos=int(v[i])
+					for a in simbolos:
+						try:
+							if matriz[pos][a] is not None:
+								try:
+									matriz[contEstado][a] = matriz[contEstado][a] + matriz[pos][a]
+								except:
+									matriz[contEstado][a]=[]
+									matriz[contEstado][a] = matriz[contEstado][a] + matriz[pos][a]
+							
+						except:
+							pass
+						if pos in estadosFinais and contEstado not in estadosFinais:  
+							estadosFinais.append(contEstado)
+					novoEstado=1
+			if(novoEstado==1):
+				print "Criou novo estado", contEstado, "indeterminismo em ", c, "com", v
+				novoEstado+=1
+		novoEstado=0		
+		cont+=1
+		if cont > contEstado:
+			existeInd=0
+
 def imprime():
 	global matriz
 	a = ""#usado na impressao de valores 
