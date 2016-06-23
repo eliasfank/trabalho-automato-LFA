@@ -129,7 +129,7 @@ def imprime():
 		print '%10s' % (simbolo),"|",
 		
 	print
-	print ('_ _'*38)
+	print ('_ _'*(len(simbolos)*5))
 	#verifique se o estado e final e imprima o *
 	for i in range(0,len(matriz)):
 		if i in estadosFinais:
