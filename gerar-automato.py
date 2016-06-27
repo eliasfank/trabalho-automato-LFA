@@ -12,12 +12,12 @@ arqTokens = args["tokens"]
 contEstado = 0
 matriz = []					   ###Lista de dicionarios
 simbolos = []				   ###Lista com todos os simbolos do automato
-vivos = set()                  ###Lista com o estados vivos
-alcansaveis = set()			   ###Lista com estados alcansaveis
+estadosAutomato = set()
 estadosFinais = []			   ###Lista com os estados finais
+mortos = set()
+inalcancaveis = set()
 
 def calculaGramatica(gramatica, contGramatica):
-	print contGramatica
 	global contEstado
 	global matriz
 	global estadosFinais
@@ -33,6 +33,7 @@ def calculaGramatica(gramatica, contGramatica):
 		#Se for a primeira gramatica comecamos pelo indice 0
 		if contGramatica > 0:
 			contEstado+=1
+
 		tempDic[estadoEsq] = contEstado
 		if contGramatica > 0 and first == 0:
 			first = 1
@@ -40,7 +41,8 @@ def calculaGramatica(gramatica, contGramatica):
 			contEstado-=1
 		else:
 			matriz.append({})
-		print estadoEsq, "--", tempDic[estadoEsq]
+		#print estadoEsq, "--", tempDic[estadoEsq]
+		estadosAutomato.add(tempDic[estadoEsq])
 		#Se nao for a primeira gramatica precisamos incrementar
 		if contGramatica == 0:
 			contEstado+=1
@@ -112,15 +114,73 @@ def calculaTokens(tokens):
 					matriz[contEstado][c].append(contEstado+1)
 				if c not in simbolos:
 					simbolos.append(c)
+			estadosAutomato.add(contEstado)
 		contEstado+=1
+		estadosAutomato.add(contEstado)
 		estadosFinais.append(contEstado)
 		matriz.append({})
+
+def imprime():
+	global matriz
+	a = ""#usado na impressao de valores 
+	print (' '*11+'|'),
+	for simbolo in simbolos:#mostrou as ligacoes
+		print '%10s' % (simbolo),"|",
+		
+	print
+	print ('_ _'*(len(simbolos)*5))
+	#verifique se o estado e final e imprima o *
+	for i in range(0,len(matriz)):
+		if i not in inalcancaveis and i not in mortos:
+			if i in estadosFinais:
+				print "*",
+			else:
+				print " ",
+			print '%8s' % (i),"|",
+			#imprime os simbilos que sao nomes das regras
+				
+			for simbolo in simbolos:
+				try:
+					print '%10s' % (matriz[i][simbolo]),
+				except:
+					print '%8s' % (a),"X",
+					
+				print ('|'),
+			print
+			print
+
+def gerarGrafo(grafo):
+	global matriz
+	grafo = {}
+	for i in range(0,len(matriz)):
+		grafo[i]=set()
+		#print i,":",			
+		for simbolo in simbolos:
+			try:
+				x = matriz[i][simbolo]
+				for j in x:
+					#print j,
+					grafo[i].add(j)
+			except:
+				pass
+		#print
+	return grafo
+
+
+def dfs(graph, start, visited=None):
+    if visited is None:
+        visited = set()
+    visited.add(start)
+    for next in graph[start] - visited:
+        dfs(graph, next, visited)
+    return visited
 
 def detMat():
 	global contEstado
 	global matriz
 	global estadosFinais
 	global simbolos
+	global estadosAutomato
 	cont=0
 	existeInd=1
 	novoEstado = 0
@@ -146,72 +206,44 @@ def detMat():
 							estadosFinais.append(contEstado)
 					novoEstado=1
 			if(novoEstado==1):
+				matriz[cont][c] = []
+				matriz[cont][c].append(contEstado)
 				print "Criou novo estado", contEstado, "indeterminismo em ", c, "com", v
 				novoEstado+=1
+				estadosAutomato.add(contEstado)
 		novoEstado=0		
 		cont+=1
 		if cont > contEstado:
 			existeInd=0
 
-def imprime():
+def escreveArquivo():
+	filename = "automato.txt"
+	file = open(filename, "w")
 	global matriz
-	a = ""#usado na impressao de valores 
-	print
-	print "Automato:"
-	print
-	print ('regra inicial = 0:')
-	print
-	print (' '*11+'|'),
 	for simbolo in simbolos:#mostrou as ligacoes
-		print '%10s' % (simbolo),"|",
-		
-	print
-	print ('_ _'*(len(simbolos)*5))
-	#verifique se o estado e final e imprima o *
+		file.write(","+simbolo)
+	file.write(",x")
+	file.write("\n")
 	for i in range(0,len(matriz)):
-		if i in estadosFinais:
-			print "*",
-		else:
-			print " ",
-		print '%8s' % (i),"|",
-		#imprime os simbilos que sao nomes das regras
-			
-		for simbolo in simbolos:
-			try:
-				print '%10s' % (matriz[i][simbolo]),
-			except:
-				print '%8s' % (a),"x",
+		if i not in inalcancaveis and i not in mortos:
+			if i in estadosFinais:
+				file.write("*")
+			else:
+				file.write(" ")
+			file.write(str(i)+",")
+			#imprime os simbilos que sao nomes das regras
 				
-			print ('|'),
-		print
-		print
+			for simbolo in simbolos:
+				try:
+					file.write(str(matriz[i][simbolo][0])+",")
+				except:
+					file.write("X"+",")
+			file.write("X")
+			file.write("\n")
+	file.write("*X")
+	for i in range(len(simbolos)+1):
+		file.write(",X")
 
-
-def gerarGrafo(grafo):
-	global matriz
-	grafo = {}
-	for i in range(0,len(matriz)):
-		#print i,":",
-		grafo[i]=set()
-		for simbolo in simbolos:
-			try:
-				x = matriz[i][simbolo]
-				for j in x:
-					#print j,
-					grafo[i].add(j)
-			except:
-				pass
-		#print
-	return grafo
-
-
-def dfs(graph, start, visited=None):
-    if visited is None:
-        visited = set()
-    visited.add(start)
-    for next in graph[start] - visited:
-        dfs(graph, next, visited)
-    return visited
 
 ################################################################################################
 
@@ -233,36 +265,29 @@ if arqTokens is not None:
 	tokens = f.readlines()
 	calculaTokens(tokens)
 
-#print "Automato"
-#for i in range(0,len(matriz)):
-#	for c, v in matriz[i].iteritems():
-#		print i, c,
-#		for x in range(0,len(v)):
-#			if x < len(v)-1:
-#				print v[x],",",
-#			else:
-#				print v[x],
-#		print
-#print "Estados Finais:"
-#print estadosFinais
-#print len(matriz), "estados no automato"
-#print simbolos
+print "AUTOMATO INDETERMINISTICO"
+imprime()
 
+detMat()
+print
+print "AUTOMATO DETERMINISTICO"
 imprime()
 
 grafo = gerarGrafo(None)
+alcancaveis = set()
+alcancaveis = dfs(grafo, 0, None)
+inalcancaveis = estadosAutomato.difference(alcancaveis)
 
-alcansaveis = dfs(grafo, 0, None)
-print "Estados Alcancaveis"
-print alcansaveis
-print
+vivos = set()
 for i in range(0,len(matriz)):
 	vis=dfs(grafo, i, None)
 	if not vis.isdisjoint(estadosFinais):
-		vivos.update(vis)
-print "Estados Vivos"
-print vivos
+		vivos.add(i)
+mortos = estadosAutomato.difference(vivos)
 print
-print "Estados Finais:"
-print estadosFinais
-print
+print "Estados Mortos:", mortos
+print "Estados inalcancaveis:", inalcancaveis
+print "AUTOMATO DETERMINISTICO E MINIMO"
+imprime()
+
+escreveArquivo()

@@ -10,3 +10,4 @@ python gerar-automato.py -g gramaticas.txt -t tokens.txt
 - cada gramática no arquivo deve ser separada por um linha em branco
 - cada token no arquivo deve ser separado por uma quebra de linha
 - epsilon deve ser representado por &
+- o programa pode ser usado apenas passando tokens ou apenas gramáticas
